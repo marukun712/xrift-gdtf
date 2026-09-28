@@ -1,0 +1,9 @@
+{
+	"item": {
+		"distDir": "./dist",
+		"buildCommand": "npm run build",
+		"title": "xrift-gdtf",
+		"description": "任意のGDTF灯体を表示",
+		"thumbnailPath": "thumbnail.png"
+	}
+}

@@ -9,5 +9,8 @@
 	},
 	"peerDependencies": {
 		"typescript": "^5"
+	},
+	"dependencies": {
+		"@xrift/cli": "^0.24.4"
 	}
 }
