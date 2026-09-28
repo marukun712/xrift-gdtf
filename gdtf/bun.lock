@@ -6,6 +6,7 @@
       "name": "@xrift/gdtf",
       "dependencies": {
         "@xrift/world-components": "^0.53.0",
+        "@zip.js/zip.js": "^2.18.2",
       },
       "devDependencies": {
         "@originjs/vite-plugin-federation": "^1.4.1",
@@ -295,6 +296,8 @@
     "@xrift/world-components": ["@xrift/world-components@0.53.0", "https://npm.flatt.tech/@xrift/world-components/-/world-components-0.53.0.tgz", { "peerDependencies": { "@react-three/drei": "^10.0.0", "@react-three/fiber": "^9.0.0", "@react-three/rapier": "^2.0.0", "@react-three/uikit": "^1.0.0", "hls.js": "^1.5.0", "react": "^19.0.0", "three": ">=0.176.0" }, "optionalPeers": ["@react-three/rapier", "@react-three/uikit", "hls.js"] }, "sha512-5emxJ3VOcMDjwPWX6CoyFoPO7S6DAgonmOUhKkXhSDC+O5sJ7HBqqZV0BDG+Yi1J2XIvmVDIq5MHatX/ZKTfrg=="],
 
     "@zappar/msdf-generator": ["@zappar/msdf-generator@1.2.4", "https://npm.flatt.tech/@zappar/msdf-generator/-/msdf-generator-1.2.4.tgz", { "dependencies": { "comlink": "^4.4.2" } }, "sha512-6S/MCk0Ky0ipewZJw4xFEzH/2aYfWmPXEkTdBtNyDDfkbicrNwgJgtxZ4SnTDyNe9XHMqDA4sL9srRsgDLRMqA=="],
+
+    "@zip.js/zip.js": ["@zip.js/zip.js@2.18.2", "https://npm.flatt.tech/@zip.js/zip.js/-/zip.js-2.18.2.tgz", {}, "sha512-J1jwg0Kv5Aab50VlVZ6hp2rzGL/J0YLjBnkF6oJoIjmpxx9+tHgjRELGKryKnDZEcGXKjv7ibwxAziFiWHdR2A=="],
 
     "acorn": ["acorn@8.18.0", "https://npm.flatt.tech/acorn/-/acorn-8.18.0.tgz", { "bin": { "acorn": "bin/acorn" } }, "sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ=="],
 

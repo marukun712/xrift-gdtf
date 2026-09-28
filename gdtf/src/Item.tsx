@@ -1,54 +1,81 @@
-import { useFrame } from "@react-three/fiber";
-import { RigidBody } from "@react-three/rapier";
-import { useRef } from "react";
-import type { Group, Mesh } from "three";
+import { Text } from "@react-three/drei";
+import { TextInput } from "@xrift/world-components";
+import { useCallback, useRef, useState } from "react";
+import type { Group } from "three";
+import { loadGdtfFixtureFromZipUrl } from "./gdtf/loadGdtfFixture";
 
-export const Item = () => {
-	const groupRef = useRef<Group>(null);
-	const crystalRef = useRef<Mesh>(null);
+export interface ItemProps {
+	position?: [number, number, number];
+	scale?: number;
+}
 
-	// ゆっくり回転するアニメーション
-	useFrame((_state, delta) => {
-		if (crystalRef.current) {
-			crystalRef.current.rotation.y += delta * 0.5;
-		}
-	});
+type Status =
+	| { state: "idle" }
+	| { state: "loading" }
+	| { state: "loaded"; url: string }
+	| { state: "error"; message: string };
+
+export const Item: React.FC<ItemProps> = ({
+	position = [0, 0.75, 0],
+	scale = 1,
+}) => {
+	const [status, setStatus] = useState<Status>({ state: "idle" });
+	const [model, setModel] = useState<Group | null>(null);
+	const requestIdRef = useRef(0);
+
+	const handleSubmit = useCallback((url: string) => {
+		const requestId = ++requestIdRef.current;
+		setStatus({ state: "loading" });
+		setModel(null);
+
+		loadGdtfFixtureFromZipUrl(url)
+			.then((scene) => {
+				if (requestIdRef.current !== requestId) return;
+				setModel(scene);
+				setStatus({ state: "loaded", url });
+			})
+			.catch((error: unknown) => {
+				if (requestIdRef.current !== requestId) return;
+				const message = error instanceof Error ? error.message : "エラー";
+				setStatus({ state: "error", message });
+			});
+	}, []);
+
+	const statusText =
+		status.state === "idle"
+			? "URLを入力"
+			: status.state === "loading"
+				? "読み込み中..."
+				: status.state === "loaded"
+					? "完了"
+					: status.message;
 
 	return (
-		<group ref={groupRef}>
-			{/* 台座 */}
-			<RigidBody type="fixed" colliders="cuboid">
-				<mesh position={[0, 0.15, 0]} castShadow receiveShadow>
-					<cylinderGeometry args={[0.4, 0.5, 0.3, 8]} />
-					<meshStandardMaterial
-						color="#555555"
-						metalness={0.6}
-						roughness={0.3}
-					/>
+		<group position={position} scale={scale}>
+			<TextInput
+				id="gdtf-zip-url"
+				onSubmit={handleSubmit}
+				placeholder="GDTFファイルのURL"
+				interactionText="クリックしてURLを入力"
+			>
+				<mesh position={[0, 0.75, 0]}>
+					<boxGeometry args={[1.2, 0.4, 0.05]} />
+					<meshStandardMaterial color="#333333" />
 				</mesh>
-			</RigidBody>
+			</TextInput>
 
-			{/* クリスタル本体（回転） */}
-			<mesh ref={crystalRef} position={[0, 0.8, 0]} castShadow>
-				<octahedronGeometry args={[0.4]} />
-				<meshStandardMaterial
-					color="#4fc3f7"
-					emissive="#0288d1"
-					emissiveIntensity={0.3}
-					metalness={0.2}
-					roughness={0.1}
-					transparent
-					opacity={0.85}
-				/>
-			</mesh>
+			<Text
+				position={[0, 0.75, 0.03]}
+				fontSize={0.08}
+				maxWidth={1.1}
+				color="#ffffff"
+				anchorX="center"
+				anchorY="middle"
+			>
+				{statusText}
+			</Text>
 
-			{/* ポイントライト（クリスタルの発光表現） */}
-			<pointLight
-				position={[0, 0.8, 0]}
-				color="#4fc3f7"
-				intensity={2}
-				distance={3}
-			/>
+			{model ? <primitive object={model} /> : null}
 		</group>
 	);
 };

@@ -5,9 +5,12 @@
  * 本番ビルド（npm run build）では使用されません。
  */
 
-import { OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { Physics } from "@react-three/rapier";
+import { RigidBody } from "@react-three/rapier";
+import {
+	createDefaultTextInputImplementation,
+	DevEnvironment,
+	TextInputProvider,
+} from "@xrift/world-components";
 import { createRoot } from "react-dom/client";
 import { Item } from "./Item";
 
@@ -15,23 +18,21 @@ const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Root element not found");
 
 createRoot(rootElement).render(
-	<div style={{ width: "100vw", height: "100vh" }}>
-		<Canvas shadows camera={{ position: [3, 3, 3], fov: 50 }}>
-			<Physics>
-				<ambientLight intensity={0.4} />
-				<directionalLight position={[5, 5, 5]} intensity={1} castShadow />
-				<Item />
-				{/* 地面 */}
+	<TextInputProvider value={createDefaultTextInputImplementation()}>
+		<DevEnvironment>
+			<ambientLight intensity={0.4} />
+			<directionalLight position={[5, 5, 5]} intensity={1} castShadow />
+			<Item />
+			<RigidBody type="fixed" colliders="cuboid">
 				<mesh
 					receiveShadow
 					rotation={[-Math.PI / 2, 0, 0]}
 					position={[0, 0, 0]}
 				>
-					<planeGeometry args={[10, 10]} />
+					<planeGeometry args={[100, 100]} />
 					<meshStandardMaterial color="#888888" />
 				</mesh>
-				<OrbitControls />
-			</Physics>
-		</Canvas>
-	</div>,
+			</RigidBody>
+		</DevEnvironment>
+	</TextInputProvider>,
 );
