@@ -26,11 +26,10 @@ const server = Bun.serve({
 console.log(`WebSocket relay listening on ws://localhost:${WS_PORT}`);
 
 await Bun.udpSocket({
-	hostname: "0.0.0.0",
+	hostname: ARTNET_CONSOLE_HOST,
 	port: ARTNET_PORT,
 	socket: {
-		data(_socket, buffer, _port, address) {
-			if (address !== ARTNET_CONSOLE_HOST) return;
+		data(_, buffer) {
 			server.publish(WS_TOPIC, buffer);
 		},
 	},
