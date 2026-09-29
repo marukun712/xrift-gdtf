@@ -7,7 +7,14 @@ import {
 	useInstanceEvent,
 } from "@xrift/world-components";
 import { useEffect, useRef, useState } from "react";
-import { type Group, MathUtils, Quaternion, Vector3 } from "three";
+import {
+	type Group,
+	MathUtils,
+	Mesh,
+	MeshStandardMaterial,
+	Quaternion,
+	Vector3,
+} from "three";
 import { SACN_DMX_EVENT } from "./gdtf/constants";
 import { type DmxFunction, parseXML } from "./gdtf/parser";
 import type { SacnDmxPacket } from "./gdtf/sacn";
@@ -29,6 +36,26 @@ async function fetchText(url: string): Promise<string> {
 		throw new Error(`Error: ${response.status}`);
 	}
 	return await response.text();
+}
+
+interface BeamState {
+	dimmer: number;
+	cyan: number;
+	magenta: number;
+	yellow: number;
+	shutterOpen: number;
+}
+
+function getBeamState(
+	map: Map<string, BeamState>,
+	geometry: string,
+): BeamState {
+	let state = map.get(geometry);
+	if (!state) {
+		state = { dimmer: 0, cyan: 0, magenta: 0, yellow: 0, shutterOpen: 1 };
+		map.set(geometry, state);
+	}
+	return state;
 }
 
 export const Item: React.FC<ItemProps> = ({
@@ -56,6 +83,8 @@ export const Item: React.FC<ItemProps> = ({
 		if (packet.universe !== universe) return;
 		universeRef.current = packet.data;
 	});
+
+	const beamStateRef = useRef(new Map<string, BeamState>());
 
 	useFrame(() => {
 		const universe = universeRef.current;
@@ -85,7 +114,39 @@ export const Item: React.FC<ItemProps> = ({
 						.copy(baseQuat)
 						.multiply(q.setFromAxisAngle(axisX, MathUtils.degToRad(phys)));
 					break;
+				case "Dimmer":
+					getBeamState(beamStateRef.current, f.geometry).dimmer = phys;
+					break;
+				case "ColorSub_C":
+					getBeamState(beamStateRef.current, f.geometry).cyan = phys;
+					break;
+				case "ColorSub_M":
+					getBeamState(beamStateRef.current, f.geometry).magenta = phys;
+					break;
+				case "ColorSub_Y":
+					getBeamState(beamStateRef.current, f.geometry).yellow = phys;
+					break;
+				case "Shutter1":
+					getBeamState(beamStateRef.current, f.geometry).shutterOpen = phys;
+					break;
 			}
+		}
+
+		for (const [geometry, state] of beamStateRef.current) {
+			const beamNode = index.beam.get(geometry);
+			if (!(beamNode instanceof Mesh)) continue;
+			if (!(beamNode.material instanceof MeshStandardMaterial)) continue;
+
+			const brightness = state.dimmer * state.shutterOpen;
+			beamNode.material.transparent = true;
+			beamNode.material.opacity = brightness;
+			beamNode.material.color.setRGB(
+				1 - state.cyan,
+				1 - state.magenta,
+				1 - state.yellow,
+			);
+			beamNode.material.emissive.copy(beamNode.material.color);
+			beamNode.material.emissiveIntensity = brightness;
 		}
 	});
 
