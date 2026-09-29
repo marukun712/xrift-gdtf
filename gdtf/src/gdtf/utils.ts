@@ -6,8 +6,14 @@ export type Index = {
 	baseQuat: Map<string, Quaternion>;
 };
 
-export function stripBlenderNameSuffix(name: string) {
-	return name.replace(/\.\d+$/, "");
+function find(root: Object3D, geometry: string): Object3D | null {
+	let found: Object3D | null = null;
+	root.traverse((obj) => {
+		if (!found && obj.name.includes(geometry)) {
+			found = obj;
+		}
+	});
+	return found;
 }
 
 export function createIndex(root: Object3D, functions: DmxFunction[]) {
@@ -16,9 +22,8 @@ export function createIndex(root: Object3D, functions: DmxFunction[]) {
 
 	for (const f of functions) {
 		if (nodes.has(f.geometry)) continue;
-		const node = root.getObjectByName(stripBlenderNameSuffix(f.geometry));
+		const node = find(root, f.geometry);
 		if (!node) {
-			console.warn("ノードが見つからない:", f.geometry);
 			continue;
 		}
 		nodes.set(f.geometry, node);

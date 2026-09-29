@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { SACN_DMX_EVENT } from "./gdtf/constants";
 import { parseSacnMessage } from "./gdtf/sacn";
 
-const DEFAULT_RELAY_URL = "ws://localhost:7454";
+const DEFAULT_RELAY_URL = "ws://localhost:5569";
 
 export interface BridgeProps {
 	position?: [number, number, number];

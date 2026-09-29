@@ -33,7 +33,7 @@ async function fetchText(url: string): Promise<string> {
 export const Item: React.FC<ItemProps> = ({
 	position = [0, 0.75, 0],
 	scale = 1,
-	universe = 0,
+	universe = 1,
 	address = 1,
 }) => {
 	const [glbStatus, setGlbStatus] = useState<Status>({ state: "idle" });
@@ -56,6 +56,7 @@ export const Item: React.FC<ItemProps> = ({
 	useFrame(() => {
 		const universe = universeRef.current;
 		if (!functions || !universe || !model || !index) return;
+
 		for (const f of functions) {
 			let v = 0;
 			for (let i = 0; i < f.bytes; i++)
@@ -65,7 +66,7 @@ export const Item: React.FC<ItemProps> = ({
 			const t = (v - f.dmxFrom) / Math.max(f.dmxTo - f.dmxFrom, 1);
 			const phys = f.physicalFrom + t * (f.physicalTo - f.physicalFrom);
 
-			const node = index.nodes.get(f.attribute);
+			const node = index.nodes.get(f.geometry);
 			const baseQuat = index.baseQuat.get(f.geometry);
 			if (!node || !baseQuat) return;
 
@@ -92,7 +93,9 @@ export const Item: React.FC<ItemProps> = ({
 			loadGlbFromUrl(url)
 				.then((scene) => {
 					setModel(scene);
-					if (functions) setIndex(createIndex(scene, functions));
+					if (functions) {
+						setIndex(createIndex(scene, functions));
+					}
 					setGlbStatus({ state: "loaded" });
 				})
 				.catch((error: unknown) => {
