@@ -33,6 +33,7 @@ console.log(`WebSocket relay listening on ws://localhost:${WS_PORT}`);
 const receiver = new Receiver({
 	universes,
 	port: SACN_PORT,
+	iface: "127.0.0.1",
 });
 
 receiver.on("packet", (packet) => {
