@@ -60,8 +60,8 @@ function getBeamState(
 export const Item: React.FC<ItemProps> = ({
 	position = [0, 0.75, 0],
 	scale = 1,
-	universe = 1,
-	address = 1,
+	universe: initialUniverse = 1,
+	address: initialAddress = 1,
 	defaultUrls = "https://files.maril.blue/MegaPointe.glb,https://files.maril.blue/description.xml",
 }) => {
 	const [model, setModel] = useState<Group | null>(null);
@@ -71,6 +71,11 @@ export const Item: React.FC<ItemProps> = ({
 		position: { x: 0, y: 0, z: 0 },
 		rotation: { x: 0, y: 0, z: 0 },
 	});
+	const [universe, setUniverse] = useState(initialUniverse);
+	const [address, setAddress] = useState(initialAddress);
+	const [urlInputId] = useState(() => crypto.randomUUID());
+	const [dmxInputId] = useState(() => crypto.randomUUID());
+	const [grabbableId] = useState(() => crypto.randomUUID());
 
 	const axisY = new Vector3(0, 1, 0);
 	const axisX = new Vector3(1, 0, 0);
@@ -159,6 +164,16 @@ export const Item: React.FC<ItemProps> = ({
 		setIndex(createIndex(model, parsed.functions));
 	};
 
+	const handleSubmitDmxAddress = (value: string) => {
+		const [universeValue, addressValue] = value
+			.split(",")
+			.map((v) => Number(v.trim()));
+		if (!Number.isFinite(universeValue) || !Number.isFinite(addressValue))
+			return;
+		setUniverse(universeValue);
+		setAddress(addressValue);
+	};
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: hogepiyo
 	useEffect(() => {
 		(async () => {
@@ -169,7 +184,7 @@ export const Item: React.FC<ItemProps> = ({
 	return (
 		<group position={position} scale={scale}>
 			<TextInput
-				id={crypto.randomUUID()}
+				id={urlInputId}
 				value={defaultUrls}
 				onSubmit={handleSubmitUrls}
 				placeholder="glbのURL,xmlのURL"
@@ -191,9 +206,32 @@ export const Item: React.FC<ItemProps> = ({
 				</mesh>
 			</TextInput>
 
+			<TextInput
+				id={dmxInputId}
+				value={`${universe},${address}`}
+				onSubmit={handleSubmitDmxAddress}
+				placeholder="universe,address"
+				interactionText="クリックしてDMXアドレスを入力"
+			>
+				<mesh position={[0, 1.5, 0]}>
+					<boxGeometry args={[1.2, 0.4, 0.05]} />
+					<meshStandardMaterial color="#333333" />
+					<Text
+						position={[0, 0, 0.03]}
+						fontSize={0.08}
+						maxWidth={1.1}
+						color="#ffffff"
+						anchorX="center"
+						anchorY="middle"
+					>
+						DMXアドレス設定
+					</Text>
+				</mesh>
+			</TextInput>
+
 			{model ? (
 				<Grabbable
-					id={crypto.randomUUID()}
+					id={grabbableId}
 					transform={modelTransform}
 					onMove={(next) => setModelTransform((prev) => ({ ...prev, ...next }))}
 				>

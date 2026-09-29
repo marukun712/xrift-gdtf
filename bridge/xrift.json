@@ -1,0 +1,9 @@
+{
+	"item": {
+		"distDir": "./dist",
+		"buildCommand": "npm run build",
+		"title": "DMX-WSブリッジ",
+		"description": "WebSocketでsACNパケットを受け取りワールドにブロードキャストします",
+		"thumbnailPath": "thumbnail.png"
+	}
+}

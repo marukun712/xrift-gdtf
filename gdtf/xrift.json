@@ -2,7 +2,7 @@
 	"item": {
 		"distDir": "./dist",
 		"buildCommand": "npm run build",
-		"title": "xrift-gdtf",
+		"title": "GDTF読み込み君",
 		"description": "任意のGDTF灯体を表示",
 		"thumbnailPath": "thumbnail.png"
 	}

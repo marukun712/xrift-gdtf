@@ -6,16 +6,17 @@ import { parseSacnMessage } from "./gdtf/sacn";
 
 const DEFAULT_RELAY_URL = "ws://localhost:5569";
 
-export interface BridgeProps {
+export interface ItemProps {
 	position?: [number, number, number];
 	scale?: number;
 }
 
-export const Bridge: React.FC<BridgeProps> = ({
+export const Item: React.FC<ItemProps> = ({
 	position = [0, 1, 0],
 	scale = 1,
 }) => {
 	const [url, setUrl] = useState(DEFAULT_RELAY_URL);
+	const [textInputId] = useState(() => crypto.randomUUID());
 
 	const emitSacnDmx = useInstanceEvent(SACN_DMX_EVENT, () => {});
 
@@ -36,7 +37,7 @@ export const Bridge: React.FC<BridgeProps> = ({
 	return (
 		<group position={position} scale={scale}>
 			<TextInput
-				id={crypto.randomUUID()}
+				id={textInputId}
 				value={url}
 				onSubmit={setUrl}
 				interactionText="クリックしてURLを入力"

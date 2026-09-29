@@ -11,10 +11,10 @@ export default defineConfig({
 			insertTypesEntry: true,
 		}),
 		federation({
-			name: "xrift_gdtf",
+			name: "xrift_bridge",
 			filename: "remoteEntry.js",
 			exposes: {
-				"./Item": "./src/Item.tsx",
+				"./Item": "./src/index.tsx",
 			},
 			// shared は必ずホストが提供する実体を使う。
 			// requiredVersion に狭い範囲を書くと、ホストが更新された時点で
