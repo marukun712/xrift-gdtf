@@ -22,7 +22,6 @@ import { createIndex, type Index } from "./gdtf/utils";
 import { loadGlbFromUrl } from "./loadGlb";
 
 export interface ItemProps {
-	id: string;
 	position?: [number, number, number];
 	scale?: number;
 	universe?: number;
@@ -59,7 +58,6 @@ function getBeamState(
 }
 
 export const Item: React.FC<ItemProps> = ({
-	id,
 	position = [0, 0.75, 0],
 	scale = 1,
 	universe = 1,
@@ -171,7 +169,7 @@ export const Item: React.FC<ItemProps> = ({
 	return (
 		<group position={position} scale={scale}>
 			<TextInput
-				id={`${id}-urls`}
+				id={crypto.randomUUID()}
 				value={defaultUrls}
 				onSubmit={handleSubmitUrls}
 				placeholder="glbのURL,xmlのURL"
@@ -195,7 +193,7 @@ export const Item: React.FC<ItemProps> = ({
 
 			{model ? (
 				<Grabbable
-					id={`${id}-model`}
+					id={crypto.randomUUID()}
 					transform={modelTransform}
 					onMove={(next) => setModelTransform((prev) => ({ ...prev, ...next }))}
 				>

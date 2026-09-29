@@ -27,7 +27,7 @@ createRoot(rootElement).render(
 				<ambientLight intensity={0.4} />
 				<directionalLight position={[5, 5, 5]} intensity={1} castShadow />
 				<Bridge />
-				<Item id="gdtf-item-1" />
+				<Item />
 				<RigidBody type="fixed" colliders="cuboid">
 					<mesh
 						receiveShadow

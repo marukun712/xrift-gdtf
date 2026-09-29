@@ -36,7 +36,7 @@ export const Bridge: React.FC<BridgeProps> = ({
 	return (
 		<group position={position} scale={scale}>
 			<TextInput
-				id="sacn-relay-url"
+				id={crypto.randomUUID()}
 				value={url}
 				onSubmit={setUrl}
 				placeholder="ws://localhost:7454"
