@@ -15,6 +15,7 @@ export default defineConfig({
 			filename: "remoteEntry.js",
 			exposes: {
 				"./Item": "./src/index.tsx",
+				"./Bridge": "./src/index.tsx",
 			},
 			// shared は必ずホストが提供する実体を使う。
 			// requiredVersion に狭い範囲を書くと、ホストが更新された時点で

@@ -1,19 +1,21 @@
 import { Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { TextInput } from "@xrift/world-components";
-import { useCallback, useState } from "react";
+import { TextInput, useInstanceEvent } from "@xrift/world-components";
+import { useCallback, useRef, useState } from "react";
 import { type Group, MathUtils, Quaternion, Vector3 } from "three";
+import type { ArtDmxPacket } from "./gdtf/artnet";
+import { ARTNET_DMX_EVENT } from "./gdtf/constants";
 import { type DmxFunction, parseXML } from "./gdtf/parser";
-import { useDmxUniverse } from "./gdtf/useDmxUniverse";
 import { createIndex, type Index } from "./gdtf/utils";
 import { loadGlbFromUrl } from "./loadGlb";
-
-const DMX_RELAY_URL = "ws://localhost:7454";
 
 export interface ItemProps {
 	position?: [number, number, number];
 	scale?: number;
-	start?: number;
+	net?: number;
+	subnet?: number;
+	universe?: number;
+	address?: number;
 }
 
 type Status =
@@ -33,7 +35,10 @@ async function fetchText(url: string): Promise<string> {
 export const Item: React.FC<ItemProps> = ({
 	position = [0, 0.75, 0],
 	scale = 1,
-	start = 1,
+	net = 0,
+	subnet = 0,
+	universe = 0,
+	address = 1,
 }) => {
 	const [glbStatus, setGlbStatus] = useState<Status>({ state: "idle" });
 	const [xmlStatus, setXmlStatus] = useState<Status>({ state: "idle" });
@@ -46,14 +51,24 @@ export const Item: React.FC<ItemProps> = ({
 	const axisX = new Vector3(1, 0, 0);
 	const q = new Quaternion();
 
-	const universeRef = useDmxUniverse(DMX_RELAY_URL);
+	const universeRef = useRef<number[] | null>(null);
+	useInstanceEvent<ArtDmxPacket>(ARTNET_DMX_EVENT, (packet) => {
+		if (
+			packet.net !== net ||
+			packet.subnet !== subnet ||
+			packet.universe !== universe
+		)
+			return;
+		universeRef.current = packet.data;
+	});
+
 	useFrame(() => {
 		const universe = universeRef.current;
 		if (!functions || !universe || !model || !index) return;
 		for (const f of functions) {
 			let v = 0;
 			for (let i = 0; i < f.bytes; i++)
-				v = v * 256 + universe[start + f.offset + i];
+				v = v * 256 + universe[address + f.offset + i];
 			if (v < f.dmxFrom || v > f.dmxTo) continue;
 
 			const t = (v - f.dmxFrom) / Math.max(f.dmxTo - f.dmxFrom, 1);
