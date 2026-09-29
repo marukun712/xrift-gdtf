@@ -3,17 +3,15 @@ import { useFrame } from "@react-three/fiber";
 import { TextInput, useInstanceEvent } from "@xrift/world-components";
 import { useCallback, useRef, useState } from "react";
 import { type Group, MathUtils, Quaternion, Vector3 } from "three";
-import type { ArtDmxPacket } from "./gdtf/artnet";
-import { ARTNET_DMX_EVENT } from "./gdtf/constants";
+import { SACN_DMX_EVENT } from "./gdtf/constants";
 import { type DmxFunction, parseXML } from "./gdtf/parser";
+import type { SacnDmxPacket } from "./gdtf/sacn";
 import { createIndex, type Index } from "./gdtf/utils";
 import { loadGlbFromUrl } from "./loadGlb";
 
 export interface ItemProps {
 	position?: [number, number, number];
 	scale?: number;
-	net?: number;
-	subnet?: number;
 	universe?: number;
 	address?: number;
 }
@@ -35,8 +33,6 @@ async function fetchText(url: string): Promise<string> {
 export const Item: React.FC<ItemProps> = ({
 	position = [0, 0.75, 0],
 	scale = 1,
-	net = 0,
-	subnet = 0,
 	universe = 0,
 	address = 1,
 }) => {
@@ -52,13 +48,8 @@ export const Item: React.FC<ItemProps> = ({
 	const q = new Quaternion();
 
 	const universeRef = useRef<number[] | null>(null);
-	useInstanceEvent<ArtDmxPacket>(ARTNET_DMX_EVENT, (packet) => {
-		if (
-			packet.net !== net ||
-			packet.subnet !== subnet ||
-			packet.universe !== universe
-		)
-			return;
+	useInstanceEvent<SacnDmxPacket>(SACN_DMX_EVENT, (packet) => {
+		if (packet.universe !== universe) return;
 		universeRef.current = packet.data;
 	});
 

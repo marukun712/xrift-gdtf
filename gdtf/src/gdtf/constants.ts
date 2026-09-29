@@ -1,1 +1,1 @@
-export const ARTNET_DMX_EVENT = "artnet-dmx";
+export const SACN_DMX_EVENT = "sacn-dmx";

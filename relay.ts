@@ -1,10 +1,15 @@
-const ARTNET_PORT = 6454;
-const WS_PORT = 7454;
-const WS_TOPIC = "artnet";
+import { Receiver } from "sacn";
 
-const ARTNET_CONSOLE_HOST = process.argv[2];
-if (!ARTNET_CONSOLE_HOST) {
-	throw new Error("Usage: bun relay.ts <host>");
+const SACN_PORT = 5568;
+const WS_PORT = 5569;
+const WS_TOPIC = "sacn";
+
+const universes = process.argv.slice(2).map(Number);
+if (
+	universes.length === 0 ||
+	universes.some((universe) => Number.isNaN(universe))
+) {
+	throw new Error("Usage: bun relay.ts <universe...>");
 }
 
 const server = Bun.serve({
@@ -25,16 +30,21 @@ const server = Bun.serve({
 });
 console.log(`WebSocket relay listening on ws://localhost:${WS_PORT}`);
 
-await Bun.udpSocket({
-	hostname: ARTNET_CONSOLE_HOST,
-	port: ARTNET_PORT,
-	socket: {
-		data(_, buffer) {
-			server.publish(WS_TOPIC, buffer);
-		},
-	},
+const receiver = new Receiver({
+	universes,
+	port: SACN_PORT,
+});
+
+receiver.on("packet", (packet) => {
+	const data = packet.payloadAsBuffer;
+	if (!data) return;
+
+	server.publish(
+		WS_TOPIC,
+		JSON.stringify({ universe: packet.universe, data: Array.from(data) }),
+	);
 });
 
 console.log(
-	`Listening for Art-Net on udp://${ARTNET_CONSOLE_HOST}:${ARTNET_PORT}`,
+	`Listening for sACN on udp://0.0.0.0:${SACN_PORT} (universes: ${universes.join(", ")})`,
 );

@@ -51,6 +51,7 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@xrift/world-components": "^0.53.0"
+		"@xrift/world-components": "^0.53.0",
+		"zod": "^4.6.5"
 	}
 }

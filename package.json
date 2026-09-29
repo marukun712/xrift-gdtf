@@ -11,6 +11,8 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
-		"@xrift/cli": "^0.24.4"
+		"@xrift/cli": "^0.24.4",
+		"sacn": "^4.6.2",
+		"zod": "^4.6.5"
 	}
 }
