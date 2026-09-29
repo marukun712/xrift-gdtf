@@ -39,7 +39,6 @@ export const Bridge: React.FC<BridgeProps> = ({
 				id={crypto.randomUUID()}
 				value={url}
 				onSubmit={setUrl}
-				placeholder="ws://localhost:7454"
 				interactionText="クリックしてURLを入力"
 			>
 				<mesh>
