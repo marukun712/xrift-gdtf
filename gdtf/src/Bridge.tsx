@@ -11,24 +11,17 @@ export interface BridgeProps {
 	scale?: number;
 }
 
-type Status = "idle" | "connecting" | "connected" | "error";
-
 export const Bridge: React.FC<BridgeProps> = ({
 	position = [0, 1, 0],
 	scale = 1,
 }) => {
 	const [url, setUrl] = useState(DEFAULT_RELAY_URL);
-	const [status, setStatus] = useState<Status>("idle");
 
 	const emitSacnDmx = useInstanceEvent(SACN_DMX_EVENT, () => {});
 
 	useEffect(() => {
-		setStatus("connecting");
-
 		const ws = new WebSocket(url);
-		ws.onopen = () => setStatus("connected");
-		ws.onerror = () => setStatus("error");
-		ws.onclose = () => setStatus("idle");
+
 		ws.onmessage = (event) => {
 			const packet = parseSacnMessage(event.data);
 			if (!packet) return;
@@ -39,15 +32,6 @@ export const Bridge: React.FC<BridgeProps> = ({
 			ws.close();
 		};
 	}, [url, emitSacnDmx]);
-
-	const statusText =
-		status === "idle"
-			? "wsのURLを入力"
-			: status === "connecting"
-				? "接続中..."
-				: status === "connected"
-					? "接続完了"
-					: "接続エラー";
 
 	return (
 		<group position={position} scale={scale}>
@@ -62,18 +46,17 @@ export const Bridge: React.FC<BridgeProps> = ({
 					<boxGeometry args={[1.2, 0.4, 0.05]} />
 					<meshStandardMaterial color="#333333" />
 				</mesh>
+				<Text
+					position={[0, 0, 0.03]}
+					fontSize={0.08}
+					maxWidth={1.1}
+					color="#ffffff"
+					anchorX="center"
+					anchorY="middle"
+				>
+					DMX-WSブリッジ
+				</Text>
 			</TextInput>
-
-			<Text
-				position={[0, 0, 0.03]}
-				fontSize={0.08}
-				maxWidth={1.1}
-				color="#ffffff"
-				anchorX="center"
-				anchorY="middle"
-			>
-				{statusText}
-			</Text>
 		</group>
 	);
 };

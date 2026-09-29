@@ -1,7 +1,12 @@
 import { Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { TextInput, useInstanceEvent } from "@xrift/world-components";
-import { useCallback, useRef, useState } from "react";
+import {
+	Grabbable,
+	type GrabbableTransform,
+	TextInput,
+	useInstanceEvent,
+} from "@xrift/world-components";
+import { useEffect, useRef, useState } from "react";
 import { type Group, MathUtils, Quaternion, Vector3 } from "three";
 import { SACN_DMX_EVENT } from "./gdtf/constants";
 import { type DmxFunction, parseXML } from "./gdtf/parser";
@@ -10,17 +15,13 @@ import { createIndex, type Index } from "./gdtf/utils";
 import { loadGlbFromUrl } from "./loadGlb";
 
 export interface ItemProps {
+	id: string;
 	position?: [number, number, number];
 	scale?: number;
 	universe?: number;
 	address?: number;
+	defaultUrls?: string;
 }
-
-type Status =
-	| { state: "idle" }
-	| { state: "loading" }
-	| { state: "loaded" }
-	| { state: "error"; message: string };
 
 async function fetchText(url: string): Promise<string> {
 	const response = await fetch(url);
@@ -31,17 +32,20 @@ async function fetchText(url: string): Promise<string> {
 }
 
 export const Item: React.FC<ItemProps> = ({
+	id,
 	position = [0, 0.75, 0],
 	scale = 1,
 	universe = 1,
 	address = 1,
+	defaultUrls = "https://files.maril.blue/MegaPointe.glb,https://files.maril.blue/description.xml",
 }) => {
-	const [glbStatus, setGlbStatus] = useState<Status>({ state: "idle" });
-	const [xmlStatus, setXmlStatus] = useState<Status>({ state: "idle" });
-
 	const [model, setModel] = useState<Group | null>(null);
 	const [index, setIndex] = useState<Index | null>(null);
 	const [functions, setFunctions] = useState<DmxFunction[] | null>(null);
+	const [modelTransform, setModelTransform] = useState<GrabbableTransform>({
+		position: { x: 0, y: 0, z: 0 },
+		rotation: { x: 0, y: 0, z: 0 },
+	});
 
 	const axisY = new Vector3(0, 1, 0);
 	const axisX = new Vector3(1, 0, 0);
@@ -85,110 +89,58 @@ export const Item: React.FC<ItemProps> = ({
 		}
 	});
 
-	const handleSubmitGlb = useCallback(
-		(url: string) => {
-			setGlbStatus({ state: "loading" });
-			setModel(null);
+	const handleSubmitUrls = async (value: string) => {
+		const [glbUrl, xmlUrl] = value.split(",").map((v) => v.trim());
+		const xml = await fetchText(xmlUrl);
+		const parsed = parseXML(xml);
+		setFunctions(parsed.functions);
 
-			loadGlbFromUrl(url)
-				.then((scene) => {
-					setModel(scene);
-					if (functions) {
-						setIndex(createIndex(scene, functions));
-					}
-					setGlbStatus({ state: "loaded" });
-				})
-				.catch((error: unknown) => {
-					const message = error instanceof Error ? error.message : "Error";
-					setGlbStatus({ state: "error", message });
-				});
-		},
-		[functions],
-	);
+		const model = await loadGlbFromUrl(glbUrl);
+		setModel(model);
+		setIndex(createIndex(model, parsed.functions));
+	};
 
-	const handleSubmitXml = useCallback((url: string) => {
-		setXmlStatus({ state: "loading" });
-
-		fetchText(url)
-			.then((xmlText) => parseXML(xmlText))
-			.then((data) => {
-				console.log(data);
-				setFunctions(data.functions);
-				setXmlStatus({ state: "loaded" });
-			})
-			.catch((error: unknown) => {
-				const message = error instanceof Error ? error.message : "Error";
-				setXmlStatus({ state: "error", message });
-			});
+	// biome-ignore lint/correctness/useExhaustiveDependencies: hogepiyo
+	useEffect(() => {
+		(async () => {
+			await handleSubmitUrls(defaultUrls);
+		})();
 	}, []);
-
-	const glbStatusText =
-		glbStatus.state === "idle"
-			? "glbのURLを入力"
-			: glbStatus.state === "loading"
-				? "読み込み中..."
-				: glbStatus.state === "loaded"
-					? "完了"
-					: glbStatus.message;
-
-	const xmlStatusText =
-		xmlStatus.state === "idle"
-			? "xmlのURLを入力"
-			: xmlStatus.state === "loading"
-				? "読み込み中..."
-				: xmlStatus.state === "loaded"
-					? "完了"
-					: xmlStatus.message;
 
 	return (
 		<group position={position} scale={scale}>
 			<TextInput
-				id="gdtf-glb-url"
-				onSubmit={handleSubmitGlb}
-				placeholder="glbファイルのURL"
+				id={`${id}-urls`}
+				value={defaultUrls}
+				onSubmit={handleSubmitUrls}
+				placeholder="glbのURL,xmlのURL"
 				interactionText="クリックしてURLを入力"
 			>
-				<mesh position={[0, 0.75, 0]}>
+				<mesh position={[0, 1, 0]}>
 					<boxGeometry args={[1.2, 0.4, 0.05]} />
 					<meshStandardMaterial color="#333333" />
+					<Text
+						position={[0, 0, 0.03]}
+						fontSize={0.08}
+						maxWidth={1.1}
+						color="#ffffff"
+						anchorX="center"
+						anchorY="middle"
+					>
+						GDTF読み込み君
+					</Text>
 				</mesh>
 			</TextInput>
 
-			<Text
-				position={[0, 0.75, 0.03]}
-				fontSize={0.08}
-				maxWidth={1.1}
-				color="#ffffff"
-				anchorX="center"
-				anchorY="middle"
-			>
-				{glbStatusText}
-			</Text>
-
-			<TextInput
-				id="gdtf-xml-url"
-				onSubmit={handleSubmitXml}
-				placeholder="description.xmlのURL"
-				interactionText="クリックしてURLを入力"
-			>
-				<mesh position={[0, 1.3, 0]}>
-					<boxGeometry args={[1.2, 0.4, 0.05]} />
-					<meshStandardMaterial color="#333333" />
-				</mesh>
-			</TextInput>
-
-			<Text
-				position={[0, 1.3, 0.03]}
-				fontSize={0.08}
-				maxWidth={1.1}
-				color="#ffffff"
-				anchorX="center"
-				anchorY="middle"
-			>
-				{xmlStatusText}
-			</Text>
-
-			{model ? <primitive object={model} /> : null}
+			{model ? (
+				<Grabbable
+					id={`${id}-model`}
+					transform={modelTransform}
+					onMove={(next) => setModelTransform((prev) => ({ ...prev, ...next }))}
+				>
+					<primitive object={model} />
+				</Grabbable>
+			) : null}
 		</group>
 	);
 };
